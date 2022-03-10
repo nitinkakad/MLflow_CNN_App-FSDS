@@ -5,9 +5,10 @@ from tqdm import tqdm
 import logging
 from src.utils.common import read_yaml, create_directories
 import random
+import urllib.request as req
 
 
-STAGE = "STAGE_NAME" ## <<< change stage name 
+STAGE = "TEMPLATE" ## <<< change stage name 
 
 logging.basicConfig(
     filename=os.path.join("logs", 'running_logs.log'), 

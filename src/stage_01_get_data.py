@@ -1,15 +1,14 @@
 import argparse
-from email import header
 import os
 import shutil
 from tqdm import tqdm
 import logging
-from src.utils.common import read_yaml, create_directories
+from src.utils.common import read_yaml, create_directories, unzip_file
+from src.utils.data_mgmt import validate_image
 import random
 import urllib.request as req
 
-
-STAGE = "get_data" ## <<< change stage name 
+STAGE = "GET_DATA" ## <<< change stage name 
 
 logging.basicConfig(
     filename=os.path.join("logs", 'running_logs.log'), 
@@ -22,22 +21,37 @@ logging.basicConfig(
 def main(config_path):
     ## read config files
     config = read_yaml(config_path)
-    URL=config["data"]["source_url"]
-    local_dir=config["data"]["local_dir"]
+    URL = config["data"]["source_url"]
+    local_dir = config["data"]["local_dir"]
     create_directories([local_dir])
 
-    data_file=config["data"]["data_file"]
-    data_file_path=os.path.join(local_dir,data_file)
+    data_file = config["data"]["data_file"]
+    data_file_path = os.path.join(local_dir, data_file)
 
-    logging.info("downloading started....")
+    
     if not os.path.isfile(data_file_path):
-        filename,header = req.urlretrive(URL,data_file_path)
-        logging.info(f"filename:\n{filename} created with info \n{headers}")
+        logging.info("downloading started...")
+        filename, headers = req.urlretrieve(URL, data_file_path)
+        logging.info(f"filename:{filename} created with info \n{headers}")
     else:
-        logging.info(f"filename:\n{data_file} already present")
+        logging.info(f"filename:{data_file} already present")
 
 
+    # Unzip ops
+    unzip_data_dir=config["data"]["unzip_data_dir"]
+    create_directories([unzip_data_dir])
+    unzip_data_dir_path=os.path.join(local_dir)
+    unzip_file(source=data_file_path,dest=)
 
+
+    unzip_data_dir = config["data"]["unzip_data_dir"]
+    if not os.path.exists(unzip_data_dir):
+        create_directories([unzip_data_dir])
+        unzip_file(source=data_file_path, dest=unzip_data_dir)
+    else:
+        logging.info(f"data already extracted")
+    # validating data
+    validate_image(config)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser()
@@ -47,7 +61,7 @@ if __name__ == '__main__':
     try:
         logging.info("\n********************")
         logging.info(f">>>>> stage {STAGE} started <<<<<")
-        main(config_path=parsed_args.config,)
+        main(config_path=parsed_args.config)
         logging.info(f">>>>> stage {STAGE} completed!<<<<<\n")
     except Exception as e:
         logging.exception(e)
