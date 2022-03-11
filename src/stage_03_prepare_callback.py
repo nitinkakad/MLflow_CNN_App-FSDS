@@ -1,15 +1,14 @@
-import mlflow
 import argparse
 import os
+import shutil
+from tqdm import tqdm
 import logging
 from src.utils.common import read_yaml, create_directories
+import random
 
 
-STAGE = "MAIN" ## <<< change stage name 
 
-create_directories(["logs"])
-with open(os.path.join("logs", 'running_logs.log'), "w") as f:
-    f.write("")
+STAGE = "TEMPLATE" ## <<< change stage name 
 
 logging.basicConfig(
     filename=os.path.join("logs", 'running_logs.log'), 
@@ -19,20 +18,24 @@ logging.basicConfig(
     )
 
 
-def main():
-    with mlflow.start_run() as run:
-        mlflow.run(".", "get_data", use_conda=False)
-        # mlflow.run(".", "get_data", parameters={}, use_conda=False)
-        mlflow.run(".", "base_model_creation", use_conda=False)
-        mlflow.run(".", "training", use_conda=False)
+def main(config_path, params_path):
+    ## read config files
+    config = read_yaml(config_path)
+    params = read_yaml(params_path)
+    pass
+
 
 if __name__ == '__main__':
+    args = argparse.ArgumentParser()
+    args.add_argument("--config", "-c", default="configs/config.yaml")
+    args.add_argument("--params", "-p", default="params.yaml")
+    parsed_args = args.parse_args()
+
     try:
         logging.info("\n********************")
         logging.info(f">>>>> stage {STAGE} started <<<<<")
-        main()
+        main(config_path=parsed_args.config, params_path=parsed_args.params)
         logging.info(f">>>>> stage {STAGE} completed!<<<<<\n")
     except Exception as e:
         logging.exception(e)
         raise e
-
